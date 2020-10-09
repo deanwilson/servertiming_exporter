@@ -26,7 +26,7 @@ The exporter is written in Python 3 and requires the
     # install all the python requirements in a venv
     python3 -m venv venv
     source venv/bin/activate
-    pip3 install -r requirements.txt
+    pip3 install -r requirements/requirements.txt
 
     python3 servertiming.py --url http://127.0.0.1:5000 --debug
 
