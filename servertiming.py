@@ -7,12 +7,10 @@ from prometheus_client import start_http_server, Summary, Gauge
 
 
 # Create a metric to track time spent and requests made.
-REQUEST_TIME = Summary('request_processing_seconds',
-                       'Time spent processing request')
+REQUEST_TIME = Summary("request_processing_seconds", "Time spent processing request")
 
 
 class ServerTimingExporter:
-
     def __init__(self, url, debug=False):
         self.url = url
         self.debug = debug
@@ -25,7 +23,7 @@ class ServerTimingExporter:
         header = None
         try:
             req = requests.get(self.url, timeout=timeout)
-            header = req.headers.get('Server-Timing', None)
+            header = req.headers.get("Server-Timing", None)
         except requests.exceptions.RequestException as e:
             if self.debug:
                 pp = pprint.PrettyPrinter(indent=4)
@@ -39,15 +37,15 @@ class ServerTimingExporter:
         if not self.header:
             return timings
 
-        metrics = self.header.split(',')
+        metrics = self.header.split(",")
 
         for metric in metrics:
-            fields = metric.split(';')
+            fields = metric.split(";")
             metric_name = fields.pop(0).strip()
             timings[metric_name] = {}
 
             for field in fields:
-                name, value = field.split('=')
+                name, value = field.split("=")
                 timings[metric_name][name] = value
 
         return timings
@@ -69,8 +67,8 @@ def process_request(url, gauges, debug=False):
     for name in timings.keys():
         # default to 0.0 if no 'dur' value is provided
         # Server-Timing: missedCache is a valid header
-        duration = timings[name].get('dur', 0.0)
-        gauges['servertiming_duration'].labels(name).set(duration)
+        duration = timings[name].get("dur", 0.0)
+        gauges["servertiming_duration"].labels(name).set(duration)
 
 
 def initialise_gauages(url):
@@ -84,14 +82,15 @@ def initialise_gauages(url):
     timings = exporter.timings
 
     gauges = {}
-    gauges['servertiming_duration'] = Gauge(f"servertiming_duration_milliseconds",
-                                             "Server Timing duration in milliseconds",
-                                             ['name'])
+    gauges["servertiming_duration"] = Gauge(
+        "servertiming_duration_milliseconds",
+        "Server Timing duration in milliseconds",
+        ["name"],
+    )
 
     # assume everything works unless we explicitly say otherwise
-    gauges['servertiming_up'] = Gauge('servertiming_up',
-                                      'Scrap success indicator')
-    gauges['servertiming_up'].set(1)
+    gauges["servertiming_up"] = Gauge("servertiming_up", "Scrap success indicator")
+    gauges["servertiming_up"].set(1)
 
     return gauges
 
@@ -99,11 +98,17 @@ def initialise_gauages(url):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '--url', dest='url', required=True,
-        help="URL to fetch. This must provide a Server-Timing header")
+        "--url",
+        dest="url",
+        required=True,
+        help="URL to fetch. This must provide a Server-Timing header",
+    )
     parser.add_argument(
-        '--debug', action='store_true', default=False,
-        help="Add debug information to stdout")
+        "--debug",
+        action="store_true",
+        default=False,
+        help="Add debug information to stdout",
+    )
     opts = parser.parse_args()
 
     gauges = initialise_gauages(opts.url)
