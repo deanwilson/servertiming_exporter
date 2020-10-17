@@ -78,9 +78,6 @@ def initialise_gauages(url):
     # it would be better to inspect the registered guages and add more as
     # needed
 
-    exporter = ServerTimingExporter(url)
-    timings = exporter.timings
-
     gauges = {}
     gauges["servertiming_duration"] = Gauge(
         "servertiming_duration_milliseconds",
